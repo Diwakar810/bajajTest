@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BFHL API Tester</title>
+    <!-- Using Tailwind CSS for clean and modern styling -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+    </style>
+</head>
+<body class="bg-gray-100 min-h-screen flex items-center justify-center p-4">
+
+    <div class="bg-white p-8 rounded-xl shadow-2xl w-full max-w-2xl">
+        <h1 class="text-3xl font-bold text-center text-gray-800 mb-6">BFHL API Test Client</h1>
+        <p class="text-center text-gray-600 mb-8">Enter your array data below to test the hosted API.</p>
+        
+        <div class="mb-6">
+            <label for="dataInput" class="block text-gray-700 font-medium mb-2">Input Array (e.g., ["a","1","334","4","R","$"])</label>
+            <textarea id="dataInput" rows="6" placeholder='["2","a","y","4","&","-","*","5","92","b"]' class="w-full p-4 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all duration-200 resize-none"></textarea>
+        </div>
+
+        <button id="submitBtn" class="w-full bg-blue-600 text-white font-semibold py-3 rounded-lg shadow-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-50 transition-colors duration-200">
+            Submit to API
+        </button>
+
+        <div id="loading" class="hidden text-center text-blue-600 mt-6">
+            <svg class="animate-spin h-5 w-5 text-blue-600 mx-auto" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+            </svg>
+            <p class="mt-2">Sending request...</p>
+        </div>
+        
+        <div id="responseContainer" class="mt-6 hidden">
+            <h2 class="text-xl font-semibold text-gray-800 mb-4">API Response:</h2>
+            <pre id="responseOutput" class="bg-gray-800 text-green-400 p-6 rounded-lg overflow-x-auto text-sm shadow-inner"></pre>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const dataInput = document.getElementById('dataInput');
+            const submitBtn = document.getElementById('submitBtn');
+            const loadingIndicator = document.getElementById('loading');
+            const responseContainer = document.getElementById('responseContainer');
+            const responseOutput = document.getElementById('responseOutput');
+
+            // Set the API URL to a relative path, which Vercel will handle automatically.
+            const API_URL = "/bfhl";
+            
+            submitBtn.addEventListener('click', async () => {
+                let parsedData;
+                try {
+                    // Try to parse the user's input as a JSON array.
+                    parsedData = JSON.parse(dataInput.value);
+                    if (!Array.isArray(parsedData)) {
+                        throw new Error('Input is not a valid JSON array.');
+                    }
+                } catch (error) {
+                    alert('Invalid input. Please enter a valid JSON array. Example: ["a", "1", "b"]');
+                    return;
+                }
+
+                // Show loading indicator and hide previous response
+                loadingIndicator.classList.remove('hidden');
+                responseContainer.classList.add('hidden');
+                submitBtn.disabled = true;
+
+                try {
+                    const response = await fetch(API_URL, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify({ data: parsedData }),
+                    });
+
+                    // Check for a successful response from the server.
+                    if (!response.ok) {
+                        throw new Error(`HTTP error! status: ${response.status}`);
+                    }
+
+                    const result = await response.json();
+                    
+                    // Display the formatted JSON response.
+                    responseOutput.textContent = JSON.stringify(result, null, 2);
+                    responseContainer.classList.remove('hidden');
+
+                } catch (error) {
+                    // Handle network or server errors.
+                    responseOutput.textContent = `Error: ${error.message}`;
+                    responseContainer.classList.remove('hidden');
+                } finally {
+                    // Hide loading indicator and re-enable the button.
+                    loadingIndicator.classList.add('hidden');
+                    submitBtn.disabled = false;
+                }
+            });
+
+            function alert(message) {
+                const alertDiv = document.createElement('div');
+                alertDiv.className = 'fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50';
+                alertDiv.innerHTML = `
+                    <div class="bg-white rounded-lg p-6 shadow-xl w-full max-w-sm text-center">
+                        <p class="text-lg font-medium text-gray-800 mb-4">${message}</p>
+                        <button onclick="this.closest('.fixed').remove()" class="bg-blue-600 text-white font-semibold py-2 px-6 rounded-lg hover:bg-blue-700 transition-colors duration-200">
+                            OK
+                        </button>
+                    </div>
+                `;
+                document.body.appendChild(alertDiv);
+            }
+        });
+    </script>
+</body>
+</html>
