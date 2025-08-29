@@ -4,7 +4,6 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>BFHL API Tester</title>
-    <!-- Using Tailwind CSS for clean and modern styling -->
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
@@ -50,13 +49,11 @@
             const responseContainer = document.getElementById('responseContainer');
             const responseOutput = document.getElementById('responseOutput');
 
-            // Set the API URL to a relative path, which Vercel will handle automatically.
             const API_URL = "/bfhl";
             
             submitBtn.addEventListener('click', async () => {
                 let parsedData;
                 try {
-                    // Try to parse the user's input as a JSON array.
                     parsedData = JSON.parse(dataInput.value);
                     if (!Array.isArray(parsedData)) {
                         throw new Error('Input is not a valid JSON array.');
@@ -66,7 +63,6 @@
                     return;
                 }
 
-                // Show loading indicator and hide previous response
                 loadingIndicator.classList.remove('hidden');
                 responseContainer.classList.add('hidden');
                 submitBtn.disabled = true;
@@ -80,23 +76,19 @@
                         body: JSON.stringify({ data: parsedData }),
                     });
 
-                    // Check for a successful response from the server.
                     if (!response.ok) {
                         throw new Error(`HTTP error! status: ${response.status}`);
                     }
 
                     const result = await response.json();
                     
-                    // Display the formatted JSON response.
                     responseOutput.textContent = JSON.stringify(result, null, 2);
                     responseContainer.classList.remove('hidden');
 
                 } catch (error) {
-                    // Handle network or server errors.
                     responseOutput.textContent = `Error: ${error.message}`;
                     responseContainer.classList.remove('hidden');
                 } finally {
-                    // Hide loading indicator and re-enable the button.
                     loadingIndicator.classList.add('hidden');
                     submitBtn.disabled = false;
                 }
